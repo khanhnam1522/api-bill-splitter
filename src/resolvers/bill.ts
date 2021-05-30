@@ -1,14 +1,12 @@
 import { Bill } from "../entities/Bill";
 import {
   Arg,
-  Ctx,
   Float,
   Mutation,
   Query,
   Resolver,
   UseMiddleware,
 } from "type-graphql";
-import { MyContext } from "../types";
 import { isAuth } from "../middleware/auth";
 
 @Resolver()
@@ -16,27 +14,24 @@ export class BillResolver {
   //get all bills
   @Query(() => [Bill])
   @UseMiddleware(isAuth)
-  bills(@Ctx() { em }: MyContext): Promise<Bill[]> {
-    return em.find(Bill, {});
+  bills(): Promise<Bill[]> {
+    return Bill.find();
   }
 
   //get a single bill by id
   @Query(() => Bill, { nullable: true })
   @UseMiddleware(isAuth)
-  bill(@Arg("id") id: number, @Ctx() { em }: MyContext): Promise<Bill | null> {
-    return em.findOne(Bill, { id });
+  bill(@Arg("id") id: number): Promise<Bill | undefined> {
+    return Bill.findOne(id);
   }
 
   //create a new bill
   @Mutation(() => Bill)
   @UseMiddleware(isAuth)
   async createBill(
-    @Arg("total") total: number,
-    @Ctx() { em }: MyContext
-  ): Promise<Bill> {
-    const bill = em.create(Bill, { total });
-    await em.persistAndFlush(bill);
-    return bill;
+    @Arg("total") total: number  ): Promise<Bill> {
+    // 2 sql queries
+    return Bill.create({total}).save();
   }
 
   //edit a bill
@@ -45,15 +40,13 @@ export class BillResolver {
   async editBill(
     @Arg("id") id: number,
     @Arg("total", () => Float, { nullable: true }) total: number,
-    @Ctx() { em }: MyContext
   ): Promise<Bill | null> {
-    const bill = await em.findOne(Bill, { id });
+    const bill = await Bill.findOne(id);
     if (!bill) {
       return null;
     }
     if (total) {
-      bill.total = total;
-      await em.persistAndFlush(bill);
+      await Bill.update({id}, {total})
     }
     return bill;
   }
@@ -62,14 +55,9 @@ export class BillResolver {
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
   async deleteBill(
-    @Arg("id") id: number,
-    @Ctx() { em }: MyContext
+    @Arg("id") id: number  
   ): Promise<boolean> {
-    try {
-      await em.nativeDelete(Bill, { id });
-    } catch {
-      return false;
-    }
+    await Bill.delete(id)
     return true;
   }
 }
