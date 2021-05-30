@@ -31,7 +31,7 @@ const main = async () => {
   })
 
   //? Uncomment to do migrations
-  await conn.runMigrations();
+  // await conn.runMigrations();
 
   const app = express();
   app.use(cookieParser());
@@ -48,7 +48,7 @@ const main = async () => {
     }),
   });
 
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({ app, cors: false });
 
   app.listen(4000, () => {
     console.log("SERVER STARTED ON LOCALHOST:4000");
