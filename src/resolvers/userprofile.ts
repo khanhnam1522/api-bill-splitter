@@ -44,31 +44,9 @@ export class UserProfileResolver {
   //register
   @Mutation(() => UserProfileResponse)
   async register(
-    @Arg("options") options: UserProfileInput,
+    @Arg("data") data: UserProfileInput,
   ): Promise<UserProfileResponse> {
-    if (options.email.length <= 2) {
-      return {
-        errors: [
-          {
-            field: "email",
-            message: "email length must be greater than 2",
-          },
-        ],
-      };
-    }
-
-    if (options.password.length <= 2) {
-      return {
-        errors: [
-          {
-            field: "password",
-            message: "password length must be greater than 2",
-          },
-        ],
-      };
-    }
-
-    const hashedPassword = await argon2.hash(options.password);
+    const hashedPassword = await argon2.hash(data.password);
     let user;
     try {
       const result = await getConnection()
@@ -76,7 +54,7 @@ export class UserProfileResolver {
       .insert()
       .into(UserProfile)
       .values({
-        email: options.email,
+        email: data.email,
         password: hashedPassword,
       })
       .returning("*")
@@ -100,17 +78,17 @@ export class UserProfileResolver {
   //login
   @Mutation(() => UserProfileResponse)
   async login(
-    @Arg("options") options: UserProfileInput,
+    @Arg("data") data: UserProfileInput,
   ): Promise<UserProfileResponse> {
     //find user
-    const user = await UserProfile.findOne({where: { email: options.email }});
+    const user = await UserProfile.findOne({where: { email: data.email }});
     if (!user) {
       return {
         errors: [{ field: "email", message: "that email doesn't exist" }],
       };
     }
     // check password
-    const valid = await argon2.verify(user.password, options.password);
+    const valid = await argon2.verify(user.password, data.password);
     if (!valid) {
       return {
         errors: [{ field: "password", message: "incorrect password" }],
