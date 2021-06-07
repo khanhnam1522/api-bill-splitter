@@ -29,8 +29,8 @@ class FieldError {
 
 @ObjectType()
 class UserProfileResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
+  @Field(() => FieldError, { nullable: true })
+  errors?: FieldError;
 
   @Field(() => UserProfile, { nullable: true })
   user?: UserProfile;
@@ -63,12 +63,11 @@ export class UserProfileResolver {
   } catch (err) {
       if (err.code === "23505") {
         return {
-          errors: [
+          errors: 
             {
               field: "username",
               message: "username is already taken",
-            },
-          ],
+            }
         };
       }
     }
@@ -84,14 +83,14 @@ export class UserProfileResolver {
     const user = await UserProfile.findOne({where: { email: data.email }});
     if (!user) {
       return {
-        errors: [{ field: "email", message: "that email doesn't exist" }],
+        errors: { field: "email", message: "that email doesn't exist" },
       };
     }
     // check password
     const valid = await argon2.verify(user.password, data.password);
     if (!valid) {
       return {
-        errors: [{ field: "password", message: "incorrect password" }],
+        errors: { field: "password", message: "incorrect password" },
       };
     }
     return {
