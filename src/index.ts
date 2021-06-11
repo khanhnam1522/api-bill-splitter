@@ -11,6 +11,12 @@ import path from "path";
 import { createConnection } from "typeorm";
 import { Bill } from "./entities/Bill";
 import { UserProfile } from "./entities/UserProfile";
+import { Item } from "./entities/Item"; 
+import { ItemResolver } from "./resolvers/item";
+import { Storage } from "./entities/Storage";
+import { StorageResolver } from "./resolvers/storage";
+import { Recipe } from "./entities/Recipe";
+import { RecipeResolver } from "./resolvers/recipe";
 
 const main = async () => {
   const conn = await createConnection({
@@ -23,7 +29,7 @@ const main = async () => {
     migrations: [path.join(__dirname, "./migrations/*")],
     logging: true,
     synchronize: true,
-    entities: [Bill, UserProfile],
+    entities: [Bill, UserProfile, Item, Storage, Recipe],
     ssl: {
       rejectUnauthorized: false,
       ca: process.env.DB_CA_CERTIFICATE,
@@ -31,14 +37,14 @@ const main = async () => {
   });
 
   //? Uncomment to do migrations
-  // await conn.runMigrations();
+  await conn.runMigrations();
 
   const app = express();
   app.use(cookieParser());
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [BillResolver, UserProfileResolver],
+      resolvers: [BillResolver, UserProfileResolver, ItemResolver, StorageResolver, RecipeResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({
