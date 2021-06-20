@@ -118,9 +118,17 @@ export class UserProfileResolver {
       //email is not in the db
       return true;
     }
-
-    await sendEmail(data.email, "<h2>HELLO THERE</h2>");
-
+    //generate random code and update the table
+    const verificationCode = Math.floor(10000000 + Math.random() * 90000000);
+    await UserProfile.update(
+      { id: user.id },
+      { verificationCode, verificationCodeUpdatedAt: new Date() }
+    );
+    //send email
+    await sendEmail(
+      data.email,
+      `<div><h2>Your verification code</h2> <h5>${verificationCode}</h5></div>`
+    );
     return true;
   }
 

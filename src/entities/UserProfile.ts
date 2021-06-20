@@ -33,4 +33,10 @@ export class UserProfile extends BaseEntity {
 
   @Column()
   password!: string;
+
+  @Column({ nullable: true })
+  verificationCode: number;
+
+  @Column({ nullable: true })
+  verificationCodeUpdatedAt: Date;
 }
