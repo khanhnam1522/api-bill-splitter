@@ -17,6 +17,8 @@ import { Storage } from "./entities/Storage";
 import { StorageResolver } from "./resolvers/storage";
 import { Recipe } from "./entities/Recipe";
 import { RecipeResolver } from "./resolvers/recipe";
+import { ItemRecipe } from "./entities/ItemRecipe";
+import { ItemRecipeResolver } from "./resolvers/itemRecipe";
 
 const main = async () => {
   const conn = await createConnection({
@@ -29,7 +31,7 @@ const main = async () => {
     migrations: [path.join(__dirname, "./migrations/*")],
     logging: true,
     synchronize: true,
-    entities: [Bill, UserProfile, Item, Storage, Recipe],
+    entities: [Bill, UserProfile, Item, Storage, Recipe, ItemRecipe],
     ssl: {
       rejectUnauthorized: false,
       ca: process.env.DB_CA_CERTIFICATE,
@@ -44,7 +46,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [BillResolver, UserProfileResolver, ItemResolver, StorageResolver, RecipeResolver],
+      resolvers: [BillResolver, UserProfileResolver, ItemResolver, StorageResolver, RecipeResolver, ItemRecipeResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({

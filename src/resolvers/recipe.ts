@@ -7,7 +7,6 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { isAuth } from "../middleware/auth";
-import { Item } from "../entities/Item";
 
 @Resolver()
 export class RecipeResolver {
@@ -30,12 +29,11 @@ export class RecipeResolver {
   @UseMiddleware(isAuth)
   async createRecipe(
     @Arg("name") name: string,
-    @Arg("ingredients", () => [Item], { nullable : true }) ingredients: Item[],
     @Arg("notes", () => String, { nullable : true }) notes: string,
     @Arg("cookingInstructions", () => String, { nullable : true }) cookingInstructions: string,
     ): Promise<Recipe> {
     // 2 sql queries
-    return Recipe.create({name, ingredients, notes, cookingInstructions}).save();
+    return Recipe.create({name, notes, cookingInstructions}).save();
   }
 
   //edit a recipe

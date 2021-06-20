@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from "type-graphql";
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany } from "typeorm";
-import { Item } from "../entities/Item";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinTable, ManyToOne } from "typeorm";
+import { ItemRecipe } from "./ItemRecipe";
 
 @ObjectType()
 @Entity()
@@ -12,12 +12,6 @@ export class Recipe extends BaseEntity{
   @Field(() => String)
   @Column({unique: true})
   name: string;
-
-  @Field(() => [Item])
-  @Column({
-      array: true
-  })
-  ingredients: Item[];
 
   @Field(() => String)
   @Column()
@@ -34,4 +28,7 @@ export class Recipe extends BaseEntity{
   @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => ItemRecipe, ir => ir.item)
+  itemConnection: Promise<ItemRecipe>[];
 }

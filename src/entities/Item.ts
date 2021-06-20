@@ -1,5 +1,6 @@
 import { Field, Int, ObjectType } from "type-graphql";
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
+import { ItemRecipe } from "./ItemRecipe"
 
 @ObjectType()
 @Entity()
@@ -9,11 +10,11 @@ export class Item extends BaseEntity{
   id!: number;
 
   @Field(() => String)
-  @Column() 
+  @Column()
   name: string;
 
   @Field(() => Int)
-  @Column({nullable: true})
+  @Column({nullable: true, default: 0})
   quantity: number;
 
   @Field(() => String)
@@ -31,4 +32,7 @@ export class Item extends BaseEntity{
   @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => ItemRecipe, ir => ir.recipe)
+  recipeConnection: Promise<ItemRecipe>[];
 }
