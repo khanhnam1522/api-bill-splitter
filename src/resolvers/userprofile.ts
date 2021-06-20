@@ -22,6 +22,12 @@ class UserProfileInput {
   username: string;
 }
 
+@InputType()
+class SendEmailVerificationInput {
+  @Field()
+  email: string;
+}
+
 @ObjectType()
 class FieldError {
   @Field()
@@ -104,14 +110,16 @@ export class UserProfileResolver {
 
   //send verification code through email
   @Mutation(() => Boolean)
-  async sendVerificationCode(@Arg("email") email: string): Promise<Boolean> {
-    const user = await UserProfile.findOne({ where: { email: email } });
+  async sendVerificationCode(
+    @Arg("data") data: SendEmailVerificationInput
+  ): Promise<Boolean> {
+    const user = await UserProfile.findOne({ where: { email: data.email } });
     if (!user) {
       //email is not in the db
       return true;
     }
 
-    await sendEmail(email, "<h2>HELLO THERE</h2>");
+    await sendEmail(data.email, "<h2>HELLO THERE</h2>");
 
     return true;
   }
