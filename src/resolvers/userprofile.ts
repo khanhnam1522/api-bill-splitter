@@ -11,6 +11,9 @@ import argon2 from "argon2";
 import { getConnection } from "typeorm";
 import { createAccessToken } from "../utils/auth";
 import { sendEmail } from "../utils/sendEmail";
+import { timeDifferenceInMinute } from "../utils/time";
+
+const VERIFICATION_CODE_EXPIRE_TIME = 30;
 
 @InputType()
 class UserProfileInput {
@@ -24,6 +27,15 @@ class UserProfileInput {
 
 @InputType()
 class SendEmailVerificationInput {
+  @Field()
+  email: string;
+}
+
+@InputType()
+class VerifyCodeInput {
+  @Field()
+  verificationCode: number;
+
   @Field()
   email: string;
 }
@@ -46,6 +58,15 @@ class UserProfileResponse {
 
   @Field(() => String, { nullable: true })
   accessToken?: string;
+}
+
+@ObjectType()
+class VerifyCodeResponse {
+  @Field(() => FieldError, { nullable: true })
+  errors?: FieldError;
+
+  @Field()
+  validateSucess?: Boolean;
 }
 
 @Resolver()
@@ -130,6 +151,52 @@ export class UserProfileResolver {
       `<div><h2>Your verification code</h2> <h5>${verificationCode}</h5></div>`
     );
     return true;
+  }
+
+  //verify code
+  @Mutation(() => VerifyCodeResponse)
+  async verifyCode(
+    @Arg("data") data: VerifyCodeInput
+  ): Promise<VerifyCodeResponse> {
+    const user = await UserProfile.findOne({ where: { email: data.email } });
+    //Check if user exist
+    if (!user) {
+      return {
+        errors: {
+          field: "email",
+          message:
+            "Can't find the email in the database. Please check the mutation arguments",
+        },
+        validateSucess: false,
+      };
+    }
+    //Check if verification code match
+    if (user.verificationCode !== data?.verificationCode) {
+      return {
+        errors: {
+          field: "verificationCode",
+          message: "Invalid verification code",
+        },
+        validateSucess: false,
+      };
+    }
+    //Check if verification code expired
+    const timeDiffInMinutes = timeDifferenceInMinute(
+      user.verificationCodeUpdatedAt,
+      new Date()
+    );
+    if (timeDiffInMinutes >= VERIFICATION_CODE_EXPIRE_TIME) {
+      return {
+        errors: {
+          field: "verificationCode",
+          message: "Verification code expired",
+        },
+        validateSucess: false,
+      };
+    }
+    return {
+      validateSucess: true,
+    };
   }
 
   //? Not using this for now
