@@ -10,6 +10,7 @@ import {
 import argon2 from "argon2";
 import { getConnection } from "typeorm";
 import { createAccessToken } from "../utils/auth";
+import { sendEmail } from "../utils/sendEmail";
 
 @InputType()
 class UserProfileInput {
@@ -99,6 +100,20 @@ export class UserProfileResolver {
       user,
       accessToken: createAccessToken(user),
     };
+  }
+
+  //send verification code through email
+  @Mutation(() => Boolean)
+  async sendVerificationCode(@Arg("email") email: string): Promise<Boolean> {
+    const user = await UserProfile.findOne({ where: { email: email } });
+    if (!user) {
+      //email is not in the db
+      return true;
+    }
+
+    await sendEmail(email, "<h2>HELLO THERE</h2>");
+
+    return true;
   }
 
   //? Not using this for now
