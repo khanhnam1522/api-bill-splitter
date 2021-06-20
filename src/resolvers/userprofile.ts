@@ -9,7 +9,7 @@ import {
 } from "type-graphql";
 import argon2 from "argon2";
 import { getConnection } from "typeorm";
-import { createAccessToken } from "../utils/auth"
+import { createAccessToken } from "../utils/auth";
 
 @InputType()
 class UserProfileInput {
@@ -17,6 +17,8 @@ class UserProfileInput {
   email: string;
   @Field()
   password: string;
+  @Field(() => String, { nullable: true })
+  username: string;
 }
 
 @ObjectType()
@@ -44,30 +46,30 @@ export class UserProfileResolver {
   //register
   @Mutation(() => UserProfileResponse)
   async register(
-    @Arg("data") data: UserProfileInput,
+    @Arg("data") data: UserProfileInput
   ): Promise<UserProfileResponse> {
     const hashedPassword = await argon2.hash(data.password);
     let user;
     try {
       const result = await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into(UserProfile)
-      .values({
-        email: data.email,
-        password: hashedPassword,
-      })
-      .returning("*")
-      .execute();
-    user = result.raw[0];    
-  } catch (err) {
+        .createQueryBuilder()
+        .insert()
+        .into(UserProfile)
+        .values({
+          email: data.email,
+          password: hashedPassword,
+          username: data.username,
+        })
+        .returning("*")
+        .execute();
+      user = result.raw[0];
+    } catch (err) {
       if (err.code === "23505") {
         return {
-          errors: 
-            {
-              field: "username",
-              message: "username is already taken",
-            }
+          errors: {
+            field: "email",
+            message: "email is already taken",
+          },
         };
       }
     }
@@ -77,10 +79,10 @@ export class UserProfileResolver {
   //login
   @Mutation(() => UserProfileResponse)
   async login(
-    @Arg("data") data: UserProfileInput,
+    @Arg("data") data: UserProfileInput
   ): Promise<UserProfileResponse> {
     //find user
-    const user = await UserProfile.findOne({where: { email: data.email }});
+    const user = await UserProfile.findOne({ where: { email: data.email } });
     if (!user) {
       return {
         errors: { field: "email", message: "that email doesn't exist" },
