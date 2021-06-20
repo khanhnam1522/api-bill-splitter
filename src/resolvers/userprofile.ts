@@ -164,8 +164,7 @@ export class UserProfileResolver {
       return {
         errors: {
           field: "email",
-          message:
-            "Can't find the email in the database. Please check the mutation arguments",
+          message: "Invalid verification code",
         },
         validateSucess: false,
       };
