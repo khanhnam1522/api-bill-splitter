@@ -35,9 +35,16 @@ class SendEmailVerificationInput {
 class VerifyCodeInput {
   @Field()
   verificationCode: number;
-
   @Field()
   email: string;
+}
+
+@InputType()
+class ChangePasswordInput {
+  @Field()
+  email: string;
+  @Field()
+  password: string;
 }
 
 @ObjectType()
@@ -64,9 +71,16 @@ class UserProfileResponse {
 class VerifyCodeResponse {
   @Field(() => FieldError, { nullable: true })
   errors?: FieldError;
-
   @Field()
   validateSucess?: Boolean;
+}
+
+@ObjectType()
+class ChangePasswordResponse {
+  @Field(() => FieldError, { nullable: true })
+  errors?: FieldError;
+  @Field()
+  changePasswordSuccess?: Boolean;
 }
 
 @Resolver()
@@ -195,6 +209,28 @@ export class UserProfileResolver {
     }
     return {
       validateSucess: true,
+    };
+  }
+
+  @Mutation(() => ChangePasswordResponse)
+  async changePassword(
+    @Arg("data") data: ChangePasswordInput
+  ): Promise<ChangePasswordResponse> {
+    const user = await UserProfile.findOne({ where: { email: data.email } });
+    //Check if user exist
+    if (!user) {
+      return {
+        errors: {
+          field: "email",
+          message: "Something went wrong. Please try again later",
+        },
+        changePasswordSuccess: false,
+      };
+    }
+    const hashedPassword = await argon2.hash(data.password);
+    await UserProfile.update({ id: user.id }, { password: hashedPassword });
+    return {
+      changePasswordSuccess: true,
     };
   }
 
