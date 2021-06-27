@@ -115,7 +115,10 @@ export class UserProfileResolver {
         };
       }
     }
-    return { user };
+    return { 
+      user,       
+      accessToken: createAccessToken(user),
+    };
   }
 
   //login
