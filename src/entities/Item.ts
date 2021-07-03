@@ -21,9 +21,9 @@ export class Item extends BaseEntity{
   @Column({nullable: true})
   expiringDate: Date;
 
-  @Field(() => Boolean)
+  @Field()
   @Column()
-  isLiquid: boolean;
+  isLiquid: Boolean;
 
   @Field(() => String)
   @CreateDateColumn()
@@ -32,6 +32,10 @@ export class Item extends BaseEntity{
   @Field(() => String)
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Field(() => Int)
+  @Column({default: 1})
+  creatorId: number;
 
   @OneToMany(() => ItemRecipe, ir => ir.recipe)
   recipeConnection: Promise<ItemRecipe>[];

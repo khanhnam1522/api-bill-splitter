@@ -9,7 +9,7 @@ export class Storage extends BaseEntity{
   id!: number;
 
   @Field(() => String)
-  @Column()
+  @Column({unique: true})
   name: string;
 
   @Field(() => String)

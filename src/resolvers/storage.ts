@@ -33,7 +33,7 @@ export class StorageResolver {
     return Storage.create({name}).save();
   }
 
-  //edit a bill
+  //edit a storage
   @Mutation(() => Storage, { nullable: true })
   @UseMiddleware(isAuth)
   async editStorage(

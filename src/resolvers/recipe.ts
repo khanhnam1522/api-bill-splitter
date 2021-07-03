@@ -1,12 +1,31 @@
 import { Recipe } from "../entities/Recipe";
 import {
   Arg,
+  Field,
+  InputType,
   Mutation,
   Query,
   Resolver,
   UseMiddleware,
 } from "type-graphql";
 import { isAuth } from "../middleware/auth";
+import { ItemRecipe } from "../entities/ItemRecipe";
+import { In } from "typeorm";
+
+@InputType()
+class RecipeInput {
+  @Field()
+  name: string;
+
+  @Field()
+  cookingInstruction: string;
+
+  @Field()
+  notes: string;
+
+  @Field((type) => [Number])
+  items: number[];
+}
 
 @Resolver()
 export class RecipeResolver {
@@ -25,15 +44,18 @@ export class RecipeResolver {
   }
 
   //create a new recipe
-  @Mutation(() => Recipe)
+  @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
-  async createRecipe(
-    @Arg("name") name: string,
-    @Arg("notes", () => String, { nullable : true }) notes: string,
-    @Arg("cookingInstructions", () => String, { nullable : true }) cookingInstructions: string,
-    ): Promise<Recipe> {
-    // 2 sql queries
-    return Recipe.create({name, notes, cookingInstructions}).save();
+  async createNewRecipe(@Arg("data") data: RecipeInput): Promise<boolean> {
+    const { name, notes, cookingInstruction, items } = data;
+    const batchItems = await ItemRecipe.find({
+      where: {
+        itemId: In(items),
+      },
+    });
+    console.log(batchItems);
+    return true;
+    // return Recipe.create({ name, notes, cookingInstruction, batchItems }).save();
   }
 
   //edit a recipe
@@ -41,14 +63,14 @@ export class RecipeResolver {
   @UseMiddleware(isAuth)
   async editRecipe(
     @Arg("id") id: number,
-    @Arg("name") name: string,
+    @Arg("name") name: string
   ): Promise<Recipe | null> {
     const recipe = await Recipe.findOne(id);
     if (!recipe) {
       return null;
     }
     if (name) {
-      await Recipe.update({id}, {name})
+      await Recipe.update({ id }, { name });
     }
     return recipe;
   }
@@ -56,10 +78,8 @@ export class RecipeResolver {
   //delete a recipe
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
-  async deleteRecipe(
-    @Arg("id") id: number  
-  ): Promise<boolean> {
-    await Recipe.delete(id)
+  async deleteRecipe(@Arg("id") id: number): Promise<boolean> {
+    await Recipe.delete(id);
     return true;
   }
 }
