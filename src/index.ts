@@ -4,13 +4,13 @@ import { __prod__ } from "./utils/constants";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
-import { BillResolver } from "./resolvers/bill";
 import { UserProfileResolver } from "./resolvers/userprofile";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { createConnection } from "typeorm";
-import { Bill } from "./entities/Bill";
 import { UserProfile } from "./entities/UserProfile";
+import { Item } from "./entities/Item";
+import { ItemResolver } from "./resolvers/item";
 
 const main = async () => {
   const conn = await createConnection({
@@ -23,7 +23,7 @@ const main = async () => {
     migrations: [path.join(__dirname, "./migrations/*")],
     logging: true,
     synchronize: true,
-    entities: [Bill, UserProfile],
+    entities: [Item, UserProfile],
     ssl: {
       rejectUnauthorized: false,
       ca: process.env.DB_CA_CERTIFICATE,
@@ -38,7 +38,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [BillResolver, UserProfileResolver],
+      resolvers: [ItemResolver, UserProfileResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({
